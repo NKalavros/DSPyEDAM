@@ -76,6 +76,8 @@ class EDAMValidator:
                                 self.synonym_to_id[synonym] = class_id
 
         print(f"✅ EDAM Validator initialized with {len(self.valid_ids)} valid IDs and {len(self.valid_labels)} valid labels, {len(self.synonym_to_label) if self.use_synonyms else 0} synonyms indexed (use_synonyms={self.use_synonyms})")
+        if not self.use_synonyms:
+            print("[DEBUG] Synonym support is OFF. Only preferred labels will be used for matching.")
     def get_label_for_synonym(self, synonym: str) -> str | None:
         if not self.use_synonyms:
             return None
@@ -202,7 +204,7 @@ class NewDesignationSuggester(dspy.Signature):
 class EnhancedEDAMMatchingSystem:
     """Enhanced EDAM matching system with validation, batch processing, and low confidence handling."""
     
-    def __init__(self, edam_csv_path: str, openai_api_key: str | None = None, batch_size: int = 5000, use_synonyms: bool = True):
+    def __init__(self, edam_csv_path: str, openai_api_key: str | None = None, batch_size: int = 5000, use_synonyms: bool = False, simple_mode: bool = True):
         """
         Initialize the enhanced EDAM matching system.
         
@@ -211,6 +213,7 @@ class EnhancedEDAMMatchingSystem:
             openai_api_key: OpenAI API key (or will use OPENAI_API_KEY env var)
             batch_size: Number of packages to process in each batch
         """
+        self.simple_mode = simple_mode
         # Set up DSPy with OpenAI
         if openai_api_key:
             os.environ['OPENAI_API_KEY'] = openai_api_key
@@ -241,6 +244,7 @@ class EnhancedEDAMMatchingSystem:
         
         print(f"✅ Enhanced EDAM System initialized with {len(self.edam_df)} active terms")
         print(f"📦 Batch size set to {self.batch_size} packages per batch")
+        print(f"[DEBUG] use_synonyms={use_synonyms}")
     
     def search_relevant_terms(self, description: str, top_k: int = 10) -> Dict[str, str]:
         """
@@ -285,7 +289,9 @@ class EnhancedEDAMMatchingSystem:
         return {}
 
 
-    def match_package_to_ontology(self, package_name: str, package_description: str, confidence_threshold: float = 0.5) -> Dict[str, Any]:
+    def match_package_to_ontology(self, package_name: str, package_description: str, confidence_threshold: float = 0.5, simple_mode: Optional[bool] = None) -> Dict[str, Any]:
+        if simple_mode is None:
+            simple_mode = self.simple_mode
         """
         Match a package to the most relevant EDAM ontology term with retry logic and validation.
         Returns a dictionary with match details.
@@ -299,33 +305,57 @@ class EnhancedEDAMMatchingSystem:
         CHARS_PER_TOKEN = 4  # Approximate
         MAX_ONTOLOGY_CHARS = SAFE_TOKENS * CHARS_PER_TOKEN
         vignette_chars = len(package_description)
-        # Prepare all ontology entries as strings
-        ontology_entries = [
-            f"{row['Class ID']}: {row['Preferred Label']}: {row['Definitions'] if pd.notna(row['Definitions']) else ''}"
-            for _, row in self.edam_df.iterrows()
-        ]
+        vignette_words = len(package_description.split())
+        vignette_tokens = vignette_chars // 4
+        # Prepare all ontology entries as strings (label and description only)
+        if simple_mode:
+            # Use only preferred labels for simple mode
+            ontology_entries = [
+                f"{row['Preferred Label']}" for _, row in self.edam_df.iterrows()
+            ]
+        else:
+            ontology_entries = [
+                f"{row['Preferred Label']}: {row['Definitions'] if pd.notna(row['Definitions']) else ''}"
+                for _, row in self.edam_df.iterrows()
+            ]
+        print(f"[DEBUG] Number of ontology entries (label+desc only): {len(ontology_entries)}")
+        # If synonyms are off, allow much larger chunks
+        if not self.validator.use_synonyms:
+            SAFE_TOKENS = 29000
+            MAX_ONTOLOGY_CHARS = SAFE_TOKENS * CHARS_PER_TOKEN
+            print(f"[DEBUG] Synonyms off: using larger chunk size (SAFE_TOKENS={SAFE_TOKENS})")
         ontology_text = "\n".join(ontology_entries)
         ontology_chars = len(ontology_text)
+        ontology_words = len(ontology_text.split())
+        ontology_tokens = ontology_chars // 4
         # Chunk ontology so each chunk + vignette is < MAX_ONTOLOGY_CHARS
         chunk_char_budget = MAX_ONTOLOGY_CHARS - vignette_chars
         chunk_entries = []
         current_chunk = []
         current_len = 0
+        chunk_words = []
+        chunk_tokens = []
         for entry in ontology_entries:
             entry_len = len(entry) + 1  # +1 for newline
             if current_len + entry_len > chunk_char_budget and current_chunk:
                 chunk_entries.append(current_chunk)
+                chunk_text = " ".join(current_chunk)
+                chunk_words.append(len(chunk_text.split()))
+                chunk_tokens.append(len(chunk_text) // 4)
                 current_chunk = []
                 current_len = 0
             current_chunk.append(entry)
             current_len += entry_len
         if current_chunk:
             chunk_entries.append(current_chunk)
+            chunk_text = " ".join(current_chunk)
+            chunk_words.append(len(chunk_text.split()))
+            chunk_tokens.append(len(chunk_text) // 4)
         num_chunks = len(chunk_entries)
-        print(f"[MATCHER REPORT] Vignette chars: {vignette_chars}")
-        print(f"[MATCHER REPORT] Ontology chars: {ontology_chars}")
+        print(f"[MATCHER REPORT] Vignette: {vignette_chars} chars, {vignette_words} words, ~{vignette_tokens} tokens")
+        print(f"[MATCHER REPORT] Ontology: {ontology_chars} chars, {ontology_words} words, ~{ontology_tokens} tokens")
         print(f"[MATCHER REPORT] Ontology chunks: {num_chunks}")
-        print(f"[MATCHER REPORT] Ontology chars per chunk: {[sum(len(e)+1 for e in chunk) for chunk in chunk_entries]}")
+        print(f"[MATCHER REPORT] Ontology per chunk: {[{'chars': sum(len(e)+1 for e in chunk), 'words': w, 'tokens': t} for chunk, w, t in zip(chunk_entries, chunk_words, chunk_tokens)]}")
 
         best_match = None
         best_confidence = -1
@@ -477,7 +507,9 @@ class EnhancedEDAMMatchingSystem:
         
         return "\n".join(sample_terms)
     
-    def process_packages_in_batches(self, packages_data: List[Dict[str, Any]], confidence_threshold: float = 0.5) -> List[Dict[str, Any]]:
+    def process_packages_in_batches(self, packages_data: List[Dict[str, Any]], confidence_threshold: float = 0.5, simple_mode: Optional[bool] = None) -> List[Dict[str, Any]]:
+        if simple_mode is None:
+            simple_mode = self.simple_mode
         """
         Process packages in batches to avoid context limitations.
         
@@ -488,6 +520,11 @@ class EnhancedEDAMMatchingSystem:
         Returns:
             List of packages with their EDAM matches
         """
+
+        if simple_mode is None:
+            simple_mode = self.simple_mode
+
+
         total_packages = len(packages_data)
         num_batches = math.ceil(total_packages / self.batch_size)
         
@@ -515,7 +552,8 @@ class EnhancedEDAMMatchingSystem:
                 match = self.match_package_to_ontology(
                     package['name'], 
                     package['description'],
-                    confidence_threshold
+                    confidence_threshold,
+                    simple_mode=simple_mode
                 )
                 
                 # Add the match to the package data
@@ -535,7 +573,9 @@ class EnhancedEDAMMatchingSystem:
         
         return all_results
     
-    def process_bioconductor_packages_enhanced(self, packages_json_path: str, confidence_threshold: float = 0.5) -> List[Dict[str, Any]]:
+    def process_bioconductor_packages_enhanced(self, packages_json_path: str, confidence_threshold: float = 0.5, simple_mode: Optional[bool] = None) -> List[Dict[str, Any]]:
+        if simple_mode is None:
+            simple_mode = self.simple_mode
         """
         Process Bioconductor packages with enhanced features.
         
@@ -553,7 +593,7 @@ class EnhancedEDAMMatchingSystem:
         print(f"📊 Loaded {len(packages)} packages from {packages_json_path}")
         
         # Process in batches
-        results = self.process_packages_in_batches(packages, confidence_threshold)
+        results = self.process_packages_in_batches(packages, confidence_threshold, simple_mode = simple_mode)
         
         return results
 
@@ -583,11 +623,11 @@ def main():
     print("=" * 60)
     
     # Initialize the enhanced system
-    system = EnhancedEDAMMatchingSystem('EDAM.csv', batch_size=5000)
+    system = EnhancedEDAMMatchingSystem('EDAM.csv', batch_size=5000, simple_mode=True, use_synonyms=False)
     
     # Process the packages
     print("\n📦 Processing Bioconductor packages...")
-    results = system.process_bioconductor_packages_enhanced('bioc_packages_summary.json', confidence_threshold=0.5)
+    results = system.process_bioconductor_packages_enhanced('bioc_packages_summary.json', confidence_threshold=0.5, simple_mode = system.simple_mode)
     
     # Save final results
     output_file = 'enhanced_edam_matched_packages.json'

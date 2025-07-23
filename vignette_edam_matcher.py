@@ -39,18 +39,20 @@ class VignetteEDAMMatcher:
     
     def __init__(self, edam_csv_path: str = "EDAM.csv", 
                  openai_api_key: Optional[str] = None,
-                 use_synonyms: bool = False):
+                 use_synonyms: bool = False, simple_mode: bool = True):
         """Initialize the vignette EDAM matcher."""
         self.edam_csv_path = edam_csv_path
         self.openai_api_key = openai_api_key or os.getenv('OPENAI_API_KEY')
         self.use_synonyms = use_synonyms
+        self.simple_mode = simple_mode
         if not self.openai_api_key:
             raise ValueError("OpenAI API key not found. Set OPENAI_API_KEY environment variable.")
         # Initialize the enhanced EDAM matcher
         self.matcher = EnhancedEDAMMatchingSystem(
-            edam_csv_path=edam_csv_path,
+            edam_csv_path=self.edam_csv_path,
             openai_api_key=self.openai_api_key,
-            use_synonyms=self.use_synonyms
+            use_synonyms=self.use_synonyms,
+            simple_mode=self.simple_mode
         )
         print(f"Initialized VignetteEDAMMatcher with {len(self.matcher.validator.valid_ids)} EDAM terms (use_synonyms={self.use_synonyms})")
     
@@ -256,6 +258,11 @@ def main():
         default="EDAM.csv",
         help="Path to EDAM CSV file (default: EDAM.csv)"
     )
+    parser.add_argument(
+        "--simple_mode", 
+        action='store_true',
+        help="Use simple mode with only 'Preferred Label' for EDAM terms"
+    )
     
     args = parser.parse_args()
     
@@ -270,7 +277,7 @@ def main():
     
     try:
         # Initialize matcher
-        matcher = VignetteEDAMMatcher(edam_csv_path=args.edam_csv)
+        matcher = VignetteEDAMMatcher(edam_csv_path=args.edam_csv, simple_mode=args.simple_mode)
         
         # Process packages
         results = matcher.process_packages(package_names, output_file=args.output)
