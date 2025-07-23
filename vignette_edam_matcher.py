@@ -67,7 +67,8 @@ class VignetteEDAMMatcher:
         # Base URL patterns for Bioconductor vignettes
         base_urls = [
             f"https://bioconductor.org/packages/release/bioc/vignettes/{package_name}/inst/doc/",
-            f"https://bioconductor.org/packages/devel/bioc/vignettes/{package_name}/inst/doc/"
+            f"https://bioconductor.org/packages/devel/bioc/vignettes/{package_name}/inst/doc/",
+            f"https://bioconductor.org/packages/release/bioc/manuals/{package_name}/man/"
         ]
         
         # Common vignette file patterns
@@ -225,11 +226,22 @@ class VignetteEDAMMatcher:
             )
             # Step 2: Select top N by confidence
             sorted_results = sorted(simple_results, key=lambda r: r.get('edam_match', {}).get('confidence_score', 0), reverse=True)
-            top_n_results = sorted_results[:self.iterative_top_n]
-            top_n_names = set(r['name'] for r in top_n_results)
-            print(f"[PROGRESS] Iterative mode: Step 2 - Rerunning top {self.iterative_top_n} with full context")
+            N = self.iterative_top_n
+            while N > 1:
+                top_n_results = sorted_results[:N]
+                top_n_names = set(r['name'] for r in top_n_results)
+                top_n_packages = [pkg for pkg in packages_for_matching if pkg['name'] in top_n_names]
+                total_chars = sum(content_lengths[pkg['name']] for pkg in top_n_packages)
+                # 30k tokens ≈ 120,000 chars
+                if total_chars <= 120000:
+                    break
+                new_N = max(1, N // 2)
+                print(f"[PROGRESS] Top {N} exceeds 30k tokens ({total_chars} chars), reducing to {new_N}")
+                if new_N == N:
+                    break
+                N = new_N
+            print(f"[PROGRESS] Iterative mode: Step 2 - Rerunning top {N} with full context")
             # Step 3: Rerun top N with full context
-            top_n_packages = [pkg for pkg in packages_for_matching if pkg['name'] in top_n_names]
             for pkg in top_n_packages:
                 print(f"[PROGRESS] [full context] {pkg['name']}: {content_lengths[pkg['name']]} chars (full vignette)")
             rerun_results = self.matcher.process_packages_in_batches(
