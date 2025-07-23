@@ -224,15 +224,33 @@ class VignetteEDAMMatcher:
                 confidence_threshold=self.threshold,
                 simple_mode=True
             )
-            # Step 2: Select top N by confidence
-            sorted_results = sorted(simple_results, key=lambda r: r.get('edam_match', {}).get('confidence_score', 0), reverse=True)
-            N = self.iterative_top_n
+            # Step 2: Only rerun full context for packages with matches above threshold
+            rerun_candidates = []
+            fallback_results = []
+            for pkg, simple_result in zip(packages_for_matching, simple_results):
+                matches = simple_result.get('matches_above_threshold', [])
+                if matches:
+                    rerun_candidates.append(pkg)
+                else:
+                    # Suggest a new designation immediately (fallback)
+                    fallback = {
+                        'name': pkg['name'],
+                        'description': pkg['description'],
+                        'matches_above_threshold': [],
+                        'fallback': {
+                            'edam_id': "http://edamontology.org/topic_3365",
+                            'edam_label': "Data architecture, analysis and design",
+                            'confidence_score': 0.1,
+                            'reasoning': "No high-confidence match found in simple mode. Suggesting new designation.",
+                            'validated': False
+                        }
+                    }
+                    fallback_results.append(fallback)
+            # Now, if rerun_candidates is too large, reduce N as before
+            N = min(self.iterative_top_n, len(rerun_candidates))
             while N > 1:
-                top_n_results = sorted_results[:N]
-                top_n_names = set(r['name'] for r in top_n_results)
-                top_n_packages = [pkg for pkg in packages_for_matching if pkg['name'] in top_n_names]
+                top_n_packages = rerun_candidates[:N]
                 total_chars = sum(content_lengths[pkg['name']] for pkg in top_n_packages)
-                # 30k tokens ≈ 120,000 chars
                 if total_chars <= 120000:
                     break
                 new_N = max(1, N // 2)
@@ -240,8 +258,8 @@ class VignetteEDAMMatcher:
                 if new_N == N:
                     break
                 N = new_N
+            top_n_packages = rerun_candidates[:N]
             print(f"[PROGRESS] Iterative mode: Step 2 - Rerunning top {N} with full context")
-            # Step 3: Rerun top N with full context
             for pkg in top_n_packages:
                 print(f"[PROGRESS] [full context] {pkg['name']}: {content_lengths[pkg['name']]} chars (full vignette)")
             rerun_results = self.matcher.process_packages_in_batches(
@@ -249,14 +267,18 @@ class VignetteEDAMMatcher:
                 confidence_threshold=self.threshold,
                 simple_mode=False
             )
-            # Step 4: Merge results
             rerun_map = {r['name']: r for r in rerun_results}
             final_results = []
-            for r in simple_results:
-                if r['name'] in rerun_map:
-                    final_results.append(rerun_map[r['name']])
+            for pkg, simple_result in zip(packages_for_matching, simple_results):
+                if pkg['name'] in rerun_map:
+                    final_results.append(rerun_map[pkg['name']])
+                elif not simple_result.get('matches_above_threshold', []):
+                    # Already handled in fallback_results
+                    continue
                 else:
-                    final_results.append(r)
+                    final_results.append(simple_result)
+            # Add all fallback results
+            final_results.extend(fallback_results)
             batch_results = final_results
         else:
             print(f"\n{'='*60}")
@@ -384,10 +406,14 @@ def main():
             if not matches and 'fallback' in pkg_result:
                 fb = pkg_result['fallback']
                 print(f"   Fallback: {fb['edam_label']} (ID: {fb['edam_id']}, Confidence: {fb['confidence_score']:.3f})")
-            if "new_designation" in pkg_result:
-                print(f"   💡 Suggestion: {pkg_result['new_designation']}")
-        
-        print(f"\n✅ Complete! Results saved to {args.output}")
+            # Always show the suggested new category
+            suggestion = pkg_result.get('suggested_new_category')
+            if suggestion:
+                print(f"   💡 Suggested new category: {suggestion['suggested_label']} (category: {suggestion['suggested_category']}, confidence: {suggestion['confidence_score']:.2f})")
+                print(f"      Justification: {suggestion['justification']}")
+                if suggestion.get('similar_terms'):
+                    print(f"      Similar terms: {', '.join(suggestion['similar_terms'])}")
+            print(f"\n✅ Complete! Results saved to {args.output}")
         
     except Exception as e:
         print(f"❌ Error: {e}")

@@ -294,7 +294,7 @@ class EnhancedEDAMMatchingSystem:
             simple_mode = self.simple_mode
         """
         Match a package to the most relevant EDAM ontology term with retry logic and validation.
-        Returns a dictionary with match details.
+        Returns a dictionary with match details, always including a new designation suggestion.
         """
         import time
         max_retries = 3
@@ -352,12 +352,16 @@ class EnhancedEDAMMatchingSystem:
             chunk_words.append(len(chunk_text.split()))
             chunk_tokens.append(len(chunk_text) // 4)
         num_chunks = len(chunk_entries)
+
+        # Print matcher report after all chunking and adjustments
         print(f"[MATCHER REPORT] Vignette: {vignette_chars} chars, {vignette_words} words, ~{vignette_tokens} tokens")
         print(f"[MATCHER REPORT] Ontology: {ontology_chars} chars, {ontology_words} words, ~{ontology_tokens} tokens")
         print(f"[MATCHER REPORT] Ontology chunks: {num_chunks}")
         print(f"[MATCHER REPORT] Ontology per chunk: {[{'chars': sum(len(e)+1 for e in chunk), 'words': w, 'tokens': t} for chunk, w, t in zip(chunk_entries, chunk_words, chunk_tokens)]}")
 
         matches_above_threshold = []
+        best_low_confidence_match = None
+        best_low_confidence_score = -1.0
         for chunk_idx, chunk in enumerate(chunk_entries):
             candidate_text = "\n".join(chunk)
             for attempt in range(max_retries):
@@ -397,6 +401,10 @@ class EnhancedEDAMMatchingSystem:
                     )
                     if match.confidence_score >= confidence_threshold:
                         matches_above_threshold.append(match.dict())
+                    # Track the best low-confidence match for suggestion
+                    if match.confidence_score > best_low_confidence_score:
+                        best_low_confidence_score = match.confidence_score
+                        best_low_confidence_match = match
                     break  # Only use first successful attempt per chunk
                 except Exception as e:
                     if 'RateLimitError' in str(e) or 'quota' in str(e):
@@ -406,40 +414,52 @@ class EnhancedEDAMMatchingSystem:
                             continue
                     print(f"❌ Error matching {package_name} in chunk {chunk_idx+1}: {e}")
                     break
-        if matches_above_threshold:
-            return {
-                'matches_above_threshold': matches_above_threshold
-            }
-        # Fallback if no match found
-        print(f"[MATCHER REPORT] No valid match found in any chunk. Suggesting new term.")
-        return {
-            'matches_above_threshold': [],
-            'fallback': {
+
+        # Always generate a suggestion, using the best match (even if high confidence)
+        if best_low_confidence_match is None:
+            # If no match at all, create a dummy OntologyMatch for suggestion context
+            best_low_confidence_match = OntologyMatch(
+                edam_id="http://edamontology.org/topic_3365",
+                edam_label="Data architecture, analysis and design",
+                confidence_score=0.1,
+                reasoning="No valid match found in any chunk.",
+                validated=False
+            )
+        suggestion = self.suggest_new_designation(
+            package_name=package_name,
+            package_description=package_description,
+            low_confidence_match=best_low_confidence_match
+        )
+
+        result_dict = {
+            'matches_above_threshold': matches_above_threshold,
+            'suggested_new_category': suggestion.dict()
+        }
+        if not matches_above_threshold:
+            # Fallback if no match found
+            print(f"[MATCHER REPORT] No valid match found in any chunk. Suggesting new term.")
+            result_dict['fallback'] = {
                 'edam_id': "http://edamontology.org/topic_3365",
                 'edam_label': "Data architecture, analysis and design",
                 'confidence_score': 0.1,
                 'reasoning': f"Error during matching: No valid match found in any chunk.",
                 'validated': False
             }
-        }
+        return result_dict
 
 
 
     def suggest_new_designation(self, package_name: str, package_description: str, low_confidence_match: OntologyMatch) -> NewDesignationSuggestion:
         """
         Suggest a new EDAM designation for packages with low confidence matches.
-        
         Args:
             package_name: Name of the package
             package_description: Description of the package
             low_confidence_match: The best existing match that had low confidence
-            
         Returns:
             NewDesignationSuggestion with suggested new term
         """
-        # Get sample of existing terms for context
         sample_terms = self.get_existing_terms_sample()
-        
         try:
             result = self.suggester(
                 package_name=package_name,
@@ -447,7 +467,6 @@ class EnhancedEDAMMatchingSystem:
                 low_confidence_match=f"{low_confidence_match.edam_label} (confidence: {low_confidence_match.confidence_score:.3f})",
                 existing_terms_sample=sample_terms
             )
-            
             return NewDesignationSuggestion(
                 suggested_label=result.suggested_label,
                 suggested_category=result.suggested_category,
@@ -455,7 +474,6 @@ class EnhancedEDAMMatchingSystem:
                 similar_terms=result.similar_terms.split(', ') if result.similar_terms else [],
                 confidence_score=float(result.confidence_score)
             )
-            
         except Exception as e:
             print(f"❌ Error suggesting new designation for {package_name}: {e}")
             return NewDesignationSuggestion(
@@ -465,7 +483,6 @@ class EnhancedEDAMMatchingSystem:
                 similar_terms=[],
                 confidence_score=0.1
             )
-    
     def get_fallback_terms(self) -> Dict[str, str]:
         """Get fallback terms when no specific matches are found."""
         fallback_ids = [
@@ -549,9 +566,8 @@ class EnhancedEDAMMatchingSystem:
                     simple_mode=simple_mode
                 )
                 package_result = package.copy()
-                package_result['matches_above_threshold'] = match_result.get('matches_above_threshold', [])
-                if 'fallback' in match_result:
-                    package_result['fallback'] = match_result['fallback']
+                for k, v in match_result.items():
+                    package_result[k] = v
                 batch_results.append(package_result)
                 if package_result['matches_above_threshold']:
                     print(f"    -> {len(package_result['matches_above_threshold'])} matches above threshold")

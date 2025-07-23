@@ -1,0 +1,24 @@
+[
+  {
+    "name": "Rsubread",
+    "description": "Tools for alignment, quantification and analysis of second and third generation sequencing data. It includes the whole pipeline starting from reads mapping to differential expression analysis.",
+    "edam_match": {
+      "edam_id": "http://edamontology.org/operation_3921",
+      "edam_label": "Sequence read processing",
+      "confidence_score": 0.9,
+      "reasoning": "The Rsubread package is designed for the alignment, quantification, and analysis of sequencing data, which includes processing reads from sequencing machines. The term \"Sequence read processing\" directly relates to the initial steps of handling sequencing data, which is a core part of the Rsubread package's functionality. This makes it the most relevant term among the candidates.",
+      "validated": true
+    }
+  },
+  {
+    "name": "GEOquery",
+    "description": "The NCBI Gene Expression Omnibus (GEO) is a public repository of microarray and next-generation sequencing functional genomics data. This package provides tools to query and retrieve data from GEO.",
+    "edam_match": {
+      "edam_id": "http://edamontology.org/operation_2422",
+      "edam_label": "Data retrieval",
+      "confidence_score": 0.9,
+      "reasoning": "The GEOquery package is primarily focused on querying and retrieving data from the NCBI Gene Expression Omnibus (GEO), which is a repository for functional genomics data. The most relevant EDAM ontology term is \"Data retrieval\" because the package's main functionality is to retrieve data from a specific data resource (GEO) based on user queries.",
+      "validated": true
+    }
+  }
+]

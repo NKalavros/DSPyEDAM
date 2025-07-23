@@ -31,20 +31,16 @@ Vignettes are processed with pandoc if .html and pymupdf4llm if .pdf
 export OPENAI_API_KEY='your-openai-api-key-here'
 ```
 
-### 5. Run the EDAM matching system
-
-```bash
-python edam_ontology_matcher.py
-```
-
 ## System Features
 
 This uses DSPy to force GPT-4o to suggest:
+
 - **Specific EDAM designation** with ID and label
 - **Confidence score** (0.0-1.0) 
 - **Reasoning** for the match
 
 Additional features:
+
 - **Pure Python validator** to check that the label exists in CSV and the URL too
 - **Batch processing** with 5000 entries at a time to avoid context limits
 - **Low confidence handler** - if confidence < 0.5, suggests a new EDAM designation
@@ -55,7 +51,7 @@ Additional features:
 
 ```bash
 # Test the system with 4 real Bioconductor packages
-python vignette_edam_matcher.py --packages DESeq2,limma,AnnotationDbi,GEOquery --output testing/normal.json --edam-csv EDAM.csv --iterative_mode --simple_mode --threshold 0.95
+python vignette_edam_matcher.py --packages DESeq2,limma,AnnotationDbi,GEOquery,miloR --output normal.json --edam-csv EDAM.csv --simple_mode --iterative_mode --threshold 0.8 
 ```
 
 #### Parameters explanation
@@ -65,9 +61,27 @@ python vignette_edam_matcher.py --packages DESeq2,limma,AnnotationDbi,GEOquery -
 ```
 
 ```
---output testing/normal.json Output file
+--output testing.json Output file
 ```
 
 ```
-edam-csv
+edam-csv - The CSV file of the KB
 ```
+
+```
+--simple_mode - If present, will use only "Preferred Label"
+```
+
+```
+--iterative_mode - If present, runs a second round by expanding with the definition of the term on a certain number of terms.
+```
+
+```
+--iterative_top_n - that's how many terms are kept. If the estimated tokens are above the expected rate limit (30k), halves until not
+```
+
+```
+--threshold - Return all designations above specific threshold
+```
+
+It will also always try to suggest a new matching. You can filter later if you don't want that.

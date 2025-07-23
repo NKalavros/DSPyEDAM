@@ -32,7 +32,18 @@
         "reasoning": "The DESeq2 package is primarily used for analyzing RNA-seq data to detect differentially expressed genes. This involves high-throughput sequencing of cDNA to measure the RNA content (transcriptome) of a sample. The package description specifically mentions RNA-seq and the analysis of count data from RNA-seq experiments, which aligns directly with the EDAM ontology term \"RNA-Seq.\"",
         "validated": true
       }
-    ]
+    ],
+    "suggested_new_category": {
+      "suggested_label": "RNA-seq differential expression analysis",
+      "suggested_category": "operation",
+      "justification": "The suggested term \"RNA-seq differential expression analysis\" is needed to specifically describe operations that involve the analysis of RNA-seq data to identify differentially expressed genes. This term would encompass the unique methodologies used in DESeq2, such as the use of negative binomial generalized linear models and data-driven prior distributions for dispersion and fold change estimation. Existing terms like \"Differential gene expression profiling\" are too broad and do not specify the RNA-seq context or the statistical methods employed, which are critical for understanding the scope and application of DESeq2.",
+      "similar_terms": [
+        "Differential gene expression profiling",
+        "RNA-seq analysis",
+        "Gene expression analysis"
+      ],
+      "confidence_score": 0.85
+    }
   },
   {
     "name": "limma",
@@ -67,7 +78,18 @@
         "reasoning": "The package \"limma\" is primarily focused on the analysis of gene expression data, particularly using linear models for differential expression analysis. It supports various gene expression technologies, including microarrays and RNA-seq. Among the candidate terms, \"Microarray experiment\" is the most relevant as it directly relates to one of the key technologies that limma is designed to analyze. The package provides tools for normalization, background correction, and differential expression analysis, which are essential components of microarray experiments.",
         "validated": true
       }
-    ]
+    ],
+    "suggested_new_category": {
+      "suggested_label": "Gene expression analysis using linear models",
+      "suggested_category": "operation",
+      "justification": "The suggested term \"Gene expression analysis using linear models\" is needed because limma's core functionality revolves around the application of linear models to analyze gene expression data. This includes handling complex experimental designs and providing stable results through empirical Bayesian methods. Existing terms like \"Differential gene expression profiling\" do not specifically address the use of linear models, which is a significant aspect of limma's approach. Therefore, a new term would better categorize tools and methods that focus on this specific analytical technique.",
+      "similar_terms": [
+        "Differential gene expression profiling",
+        "Gene expression analysis",
+        "Microarray data analysis"
+      ],
+      "confidence_score": 0.85
+    }
   },
   {
     "name": "AnnotationDbi",
@@ -102,7 +124,18 @@
         "reasoning": "The AnnotationDbi package is primarily concerned with providing an interface to annotation databases, allowing for the creation and management of mapping objects that facilitate access to these databases. This aligns closely with the concept of \"Biological databases,\" which involves the development and use of architectures, policies, practices, and procedures for managing data. The package's focus on database schemas, mapping, and integration of biological data fits well within this ontology term.",
         "validated": true
       }
-    ]
+    ],
+    "suggested_new_category": {
+      "suggested_label": "Annotation database interface",
+      "suggested_category": "operation",
+      "justification": "The AnnotationDbi package provides a unique functionality that is not adequately covered by existing EDAM terms. It acts as an interface to annotation databases, allowing users to access and manage these databases through R. This includes the use of database schemas, mappings, and the ability to perform operations such as querying and retrieving data. The existing term \"Database cross-mapping\" does not fully encompass the broader functionality of providing an interface to these databases. Therefore, a new term \"Annotation database interface\" is suggested to better describe this operation.",
+      "similar_terms": [
+        "Database cross-mapping",
+        "Query and retrieval",
+        "Annotation"
+      ],
+      "confidence_score": 0.7
+    }
   },
   {
     "name": "GEOquery",
@@ -137,6 +170,63 @@
         "reasoning": "The GEOquery package is primarily focused on retrieving and managing data from the NCBI Gene Expression Omnibus (GEO), which includes high-throughput experimental data such as microarray-based experiments. The most relevant EDAM ontology term for this package is \"Microarray experiment,\" as it directly pertains to the type of data (microarray) that GEOquery is designed to handle, including the conditions, protocols, and sample data relationships.",
         "validated": true
       }
-    ]
+    ],
+    "suggested_new_category": {
+      "suggested_label": "GEO data retrieval and processing",
+      "suggested_category": "operation",
+      "justification": "The GEOquery package provides a specialized operation for accessing, retrieving, and processing data from the GEO database. While there are existing terms related to data retrieval and annotation, they do not specifically address the unique aspects of handling GEO data, which includes converting various GEO data types (such as GDS, GSM, and GSE) into R data structures. This operation is distinct from general data retrieval or annotation because it involves specific methods and data structures unique to GEO. Therefore, a new term is needed to accurately describe this operation within the EDAM ontology.",
+      "similar_terms": [
+        "Query and retrieval",
+        "Annotation",
+        "Indexing"
+      ],
+      "confidence_score": 0.85
+    }
+  },
+  {
+    "name": "miloR",
+    "description": "# Extracted content from miloR.pdf\n\n## Package \u2018miloR\u2019\n\n#### July 21, 2025\n\n**Type Package**\n\n**Title Differential neighbourhood abundance testing on a graph**\n\n**Version 2.4.1**\n\n**Description Milo performs single-cell differential abundance testing. Cell states are modelled**\nas representative neighbourhoods on a nearest neighbour graph. Hypothesis testing is performed using either\na negative bionomial generalized linear model or negative binomial generalized linear mixed model.\n\n**License GPL-3 + file LICENSE**\n\n**Encoding UTF-8**\n\n**[URL https://marionilab.github.io/miloR](https://marionilab.github.io/miloR)**\n\n**[BugReports https://github.com/MarioniLab/miloR/issues](https://github.com/MarioniLab/miloR/issues)**\n\n**biocViews SingleCell, MultipleComparison, FunctionalGenomics, Software**\n\n**LinkingTo Rcpp, RcppArmadillo, RcppEigen, RcppML**\n\n**Depends R (>= 4.0.0), edgeR**\n\n**Imports BiocNeighbors, BiocGenerics, SingleCellExperiment, Matrix (>=**\n1.3-0), MatrixGenerics, S4Vectors, stats, stringr, methods,\nigraph, irlba, utils, cowplot, BiocParallel, BiocSingular,\nlimma, ggplot2, tibble, matrixStats, ggraph, gtools,\nSummarizedExperiment, patchwork, tidyr, dplyr, ggrepel,\nggbeeswarm, RColorBrewer, grDevices, Rcpp, pracma, numDeriv\n\n**Suggests testthat, mvtnorm, scater, scran, covr, knitr, rmarkdown,**\nuwot, scuttle, BiocStyle, MouseGastrulationData,\nMouseThymusAgeing, magick, RCurl, MASS, curl, scRNAseq,\ngraphics, sparseMatrixStats\n\n**RoxygenNote 7.3.2**\n\n**NeedsCompilation no**\n\n**Collate 'AllClasses.R' 'AllGenerics.R' 'buildFromAdjacency.R'**\n'buildGraph.R' 'calcNhoodExpression.R' 'calcNhoodDistance.R'\n'checkSeparation.R' 'countCells.R' 'findNhoodMarkers.R'\n'graphSpatialFDR.R' 'glmm.R' 'makeNhoods.R' 'milo.R'\n\n1\n\n\n-----\n\n2 _Contents_\n\n'miloR-package.R' 'methods.R' 'plotNhoods.R' 'sim_discrete.R'\n'sim_family.R' 'sim_nbglmm.R' 'sim_trajectory.R' 'testNhoods.R'\n'testDiffExp.R' 'utils.R' 'buildNhoodGraph.R'\n'annotateNhoods.R' 'groupNhoods.R' 'findNhoodGroupMarkers.R'\n'RcppExports.R' 'miloR.R'\n\n**VignetteBuilder knitr**\n\n**git_url https://git.bioconductor.org/packages/miloR**\n\n**git_branch RELEASE_3_21**\n\n**git_last_commit 296b8dd**\n\n**git_last_commit_date 2025-05-08**\n\n**Repository Bioconductor 3.21**\n\n**Date/Publication 2025-07-20**\n\n**[Author Mike Morgan [aut, cre] (ORCID: <https://orcid.org/0000-0003-0757-0711>),](https://orcid.org/0000-0003-0757-0711)**\nEmma Dann [aut, ctb]\n\n**Maintainer Mike Morgan <michael.morgan@abdn.ac.uk>**\n\n### Contents\n\nmiloR-package . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3\nannotateNhoods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3\nbuildFromAdjacency . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4\nbuildGraph . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5\nbuildNhoodGraph . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7\ncalcNhoodDistance . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8\ncalcNhoodExpression . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9\ncheckSeparation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10\ncomputePvalue . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11\ncountCells . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12\nfindNhoodGroupMarkers . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13\nfindNhoodMarkers . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15\nfitGeneticPLGlmm . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17\nfitGLMM . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19\nfitPLGlmm . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 22\nglmmControl.defaults . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25\ngraphSpatialFDR . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26\ngroupNhoods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 27\ninitialiseG . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 28\ninitializeFullZ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 29\nmakeNhoods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30\nmatrix.trace . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31\nMilo-class . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32\nMilo-methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34\nmiloR . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35\nplotDAbeeswarm . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 36\nplotNhoodCounts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 37\n\n\n-----\n\n_miloR-package_ 3\n\nplotNhoodExpressionDA . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 38\nplotNhoodGraph . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 40\nplotNhoodGraphDA . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 41\nplotNhoodGroups . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 42\nplotNhoodMA . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43\nplotNhoodSizeHist . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 44\nSatterthwaite_df . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 45\nsim_discrete . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 46\nsim_family . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 47\nsim_nbglmm . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 47\nsim_trajectory . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 48\ntestDiffExp . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 49\ntestNhoods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 51\n\n**Index** **55**\n\nmiloR-package _The miloR package_\n\n**Description**\n\nThe miloR package provides modular functions to perform differential abundance testing on replicated single-cell experiments. For details please see the vignettes vignette(\"milo_demo\", package=\"miloR\")\nand vignette(\"milo_gastrulation\", package=\"miloR\").\n\n**Value**\n\nThe miloR package\n\n**Author(s)**\n\nMike Morgan & Emma Dann\n\nannotateNhoods _Add annotations from colData to DA testing results_\n\n**Description**\n\nThis function assigns a categorical label to neighbourhoods in the differential abundance results\ndata.frame (output of testNhoods), based on the most frequent label among cells in each neighbourhood. This can be useful to stratify DA testing results by cell types or samples. Also the\nfraction of cells carrying that label is stored.\n\n**Usage**\n\nannotateNhoods(x, da.res, coldata_col, subset.nhoods = NULL)\n\n\n-----\n\n4 _buildFromAdjacency_\n\n**Arguments**\n\nx A Milo object containing single-cell gene expression and neighbourhoods.\n\nda.res A data.frame containing DA results, as expected from running testNhoods.\n\ncoldata_col A character scalar determining which column of colData(x) stores the annotation to be added to the neighbourhoods\n\nsubset.nhoods A character, numeric or logical vector that will subset the annotation to the specific nhoods. If a character vector these should correspond to row names of\nnhoodCounts. If a logical vector then these should have the same length as\nnrow of nhoodCounts. If numeric, then these are assumed to correspond to indices of nhoodCounts - if the maximal index is greater than nrow(nhoodCounts(x))\nan error will be produced. This is necessary if testNhoods was run using\nsubset.nhoods=....\n\n**Details**\n\nFor each neighbourhood, this calculates the most frequent value of colData(x)[coldata_col]\namong cells in the neighbourhood and assigns that value as annotation for the neighbourhood,\nadding a column in the da.res data.frame. In addition, a coldata_col_fraction column will be\nadded, storing the fraction of cells carrying the assigned label. While in practice neighbourhoods\nare often homogeneous, one might choose to remove an annotation label when the fraction of cells\nwith the label is too low (e.g. below 0.6).\n\n**Value**\n\nA data.frame of model results (as da.res input) with two new columns: (1) coldata_col storing\nthe assigned label for each neighbourhood; (2) coldata_col_fraction storing the fraction of cells\nin the neighbourhood with the assigned label.\n\n**Author(s)**\n\nEmma Dann\n\n**Examples**\n\nNULL\n\nbuildFromAdjacency _Build a graph from an input adjacency matrix_\n\n**Description**\n\nConstruct a kNN-graph from an input adjacency matrix - either binary or distances between NNs.\n\n\n-----\n\n_buildGraph_ 5\n\n**Arguments**\n\nx An n X n matrix of single-cells, where values represent edges between cells;\n0 values are taken to mean no edge between cells. If the matrix is not binary,\nthen it is assumed the values are distances; 0 retain the same meaning. This\nbehaviour can be toggled using is.binary=TRUE.\n\nk (optional) Scalar value that represents the number of nearest neighbours in the\noriginal graph. This can also be inferred directly from the adjacency matrix x.\n\nis.binary Logical scalar indicating if the input matrix is binary or not.\n\n**Details**\n\nThis function will take a matrix as input and construct the kNN graph that it describes. If the matrix\nis not symmetric then the graph is assumed to be directed, whereas if the matrix is not binary, i.e.\nall 0\u2019s and 1\u2019s then the input values are taken to be distances between graph vertices; 0 values are\nassumed to represent a lack of edge between vertices.\n\n**Va\n\n[Content truncated...]",
+    "source": "vignette",
+    "matches_above_threshold": [
+      {
+        "edam_id": "http://edamontology.org/data_0951",
+        "edam_label": "Statistical estimate score",
+        "confidence_score": 0.8,
+        "reasoning": "The miloR package is designed for differential abundance testing in single-cell experiments, focusing on cell states modeled as neighborhoods on a graph. This involves statistical analysis and hypothesis testing, which aligns with the concept of \"Statistical estimate score\" as it involves estimating statistical significance of observed data, particularly in the context of differential testing.",
+        "validated": true
+      },
+      {
+        "edam_id": "http://edamontology.org/data_3753",
+        "edam_label": "Over-representation data",
+        "confidence_score": 0.85,
+        "reasoning": "The miloR package is designed for differential abundance testing in single-cell experiments, which involves statistical analysis of cell states modeled as neighborhoods on a graph. The package description emphasizes hypothesis testing using models like the negative binomial generalized linear model. Among the candidate terms, \"Over-representation data\" is the most relevant as it involves statistical metrics of over-/under-representation, which aligns with the differential abundance testing performed by miloR.",
+        "validated": true
+      },
+      {
+        "edam_id": "http://edamontology.org/operation_3223",
+        "edam_label": "Differential gene expression profiling",
+        "confidence_score": 0.8,
+        "reasoning": "The miloR package is designed for differential abundance testing in single-cell experiments, focusing on modeling cell states as neighborhoods on a graph. This aligns closely with the concept of \"Differential gene expression profiling,\" which involves identifying genes with significantly different expression levels between sample groups. Although miloR operates at the level of cell neighborhoods rather than individual genes, the core functionality of testing for differential abundance is conceptually similar to differential expression analysis.",
+        "validated": true
+      },
+      {
+        "edam_id": "http://edamontology.org/topic_2229",
+        "edam_label": "Cell biology",
+        "confidence_score": 0.9,
+        "reasoning": "The miloR package is designed for differential abundance testing in single-cell experiments, focusing on modeling cell states as neighborhoods on a graph and performing hypothesis testing. This aligns closely with the field of \"Cell biology,\" which involves the study of cells, including their functions and interactions. The package's emphasis on single-cell analysis and neighborhood modeling fits well within the scope of cell biology, as it deals with understanding cellular behavior and characteristics.",
+        "validated": true
+      }
+    ],
+    "suggested_new_category": {
+      "suggested_label": "Differential neighborhood abundance testing",
+      "suggested_category": "Operation",
+      "justification": "The miloR package introduces a unique approach to analyzing single-cell data by modeling cell states as neighborhoods on a graph and performing differential abundance testing. This involves specific statistical operations that are not covered by existing EDAM terms. The current terms related to cell biology or general statistical analysis do not adequately describe the graph-based differential testing approach used in miloR. A new term would help in categorizing and identifying tools and methods that use similar graph-based statistical techniques in single-cell analysis.",
+      "similar_terms": [
+        "Differential expression analysis",
+        "Graph-based analysis",
+        "Single-cell analysis"
+      ],
+      "confidence_score": 0.85
+    }
   }
 ]

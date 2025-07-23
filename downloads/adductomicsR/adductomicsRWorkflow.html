@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Josie Hayes" />
+
+<meta name="date" content="2025-04-15" />
+
+<title>AdductomicsR workflow</title>
+
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">AdductomicsR workflow</h1>
+<h4 class="author">Josie Hayes</h4>
+<h4 class="date">April 15, 2025</h4>
+
+
+
+<div id="getting-started" class="section level1">
+<h1>Getting Started</h1>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co">#ensure you have mzR installed</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="cf">if</span> (<span class="op">!</span><span class="kw">requireNamespace</span>(<span class="st">&quot;BiocManager&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>))</span>
+<span id="cb1-3"><a href="#cb1-3"></a>    <span class="kw">install.packages</span>(<span class="st">&quot;BiocManager&quot;</span>)</span>
+<span id="cb1-4"><a href="#cb1-4"></a>BiocManager<span class="op">::</span><span class="kw">install</span>(<span class="st">&quot;mzR&quot;</span>, <span class="dt">version =</span> <span class="st">&quot;3.8&quot;</span>)</span>
+<span id="cb1-5"><a href="#cb1-5"></a></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="co"># install the package directly from Github</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="kw">library</span>(devtools)</span>
+<span id="cb1-8"><a href="#cb1-8"></a>devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;JosieLHayes/adductomicsR&quot;</span>)</span>
+<span id="cb1-9"><a href="#cb1-9"></a></span>
+<span id="cb1-10"><a href="#cb1-10"></a><span class="co">#install the data package containing the data </span></span>
+<span id="cb1-11"><a href="#cb1-11"></a><span class="cf">if</span> (<span class="op">!</span><span class="kw">requireNamespace</span>(<span class="st">&quot;BiocManager&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>))</span>
+<span id="cb1-12"><a href="#cb1-12"></a>    <span class="kw">install.packages</span>(<span class="st">&quot;BiocManager&quot;</span>)</span>
+<span id="cb1-13"><a href="#cb1-13"></a>BiocManager<span class="op">::</span><span class="kw">install</span>(<span class="st">&quot;ExperimentHub&quot;</span>, <span class="dt">version =</span> <span class="st">&quot;3.9&quot;</span>)</span>
+<span id="cb1-14"><a href="#cb1-14"></a></span>
+<span id="cb1-15"><a href="#cb1-15"></a><span class="co">#or download the packages and install from source</span></span>
+<span id="cb1-16"><a href="#cb1-16"></a><span class="kw">library</span>(devtools)</span>
+<span id="cb1-17"><a href="#cb1-17"></a>devtools<span class="op">::</span><span class="kw">install</span>(<span class="st">&quot;path_to_dir/adductomicsR&quot;</span>)</span>
+<span id="cb1-18"><a href="#cb1-18"></a>devtools<span class="op">::</span><span class="kw">install</span>(<span class="st">&quot;path_to_dir/adductData&quot;</span>)</span></code></pre></div>
+<p>After installation of the adductomics package and all dependencies attach the adductomics package by typing (copying and pasting) this line of code into the R console and hitting enter:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># load the package</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="kw">library</span>(adductomicsR)</span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="kw">library</span>(adductData)</span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="kw">library</span>(ExperimentHub)</span></code></pre></div>
+<p>We have provided 2 mzXML files for use in this vignette in adductData.</p>
+</div>
+<div id="preparation-of-the-data" class="section level1">
+<h1>Preparation of the data</h1>
+<p>Mass drift correction: Usually mass drift is corrected using lock masses on the mass spectrometer. If this has not been done a python script is provided in the directory in which the package is saved on your computer at /inst/extdata/thermo_MassDriftCalc.py and can be launched from within python using (replace the path to the python script in your system): <code>exec(open(“thermo_MassDriftCalc.py“).read())</code></p>
+</div>
+<div id="retention-time-correction" class="section level1">
+<h1>Retention time correction</h1>
+<p>Each sample is corrected for retention time drift using the rtDevModeling function. To run this with the default parameters enter the path of the directory containing your mzXML files and the run order file (order in which samples were run). For further information on parameters see ??rtDevModelling. An example run order file is available in inst/extdata (within the directory where the package is saved on your computer) and 2 mzXML files are available in adductData/ExperimentHub.These files will be used in this vignette automatically.</p>
+<p>Download the mzXML files from ExperimentHub for use in this vignette. They must have .mzXML to be recognized by the package so they are renamed as well.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>eh  =<span class="st"> </span><span class="kw">suppressMessages</span>(<span class="kw">suppressWarnings</span>(ExperimentHub<span class="op">::</span><span class="kw">ExperimentHub</span>()))</span>
+<span id="cb3-2"><a href="#cb3-2"></a>temp =<span class="st"> </span><span class="kw">suppressMessages</span>(<span class="kw">suppressWarnings</span>(</span>
+<span id="cb3-3"><a href="#cb3-3"></a>AnnotationHub<span class="op">::</span><span class="kw">query</span>(eh, <span class="st">&#39;adductData&#39;</span>)))</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">suppressMessages</span>(<span class="kw">suppressWarnings</span>(temp[[<span class="st">&#39;EH1957&#39;</span>]])) <span class="co">#first mzXML file</span></span></code></pre></div>
+<pre><code>##                                                      EH1957 
+## &quot;/home/biocbuild/.cache/R/ExperimentHub/2f3a883115aaa_1957&quot;</code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">file.rename</span>(<span class="kw">cache</span>(temp[<span class="st">&quot;EH1957&quot;</span>]), <span class="kw">file.path</span>(<span class="kw">hubCache</span>(temp),</span>
+<span id="cb6-2"><a href="#cb6-2"></a>                                             <span class="st">&#39;ORB35017.mzXML&#39;</span>))</span></code></pre></div>
+<pre><code>## [1] TRUE</code></pre>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>temp[[<span class="st">&#39;EH1958&#39;</span>]] <span class="co">#second mzXML file</span></span></code></pre></div>
+<pre><code>## see ?adductData and browseVignettes(&#39;adductData&#39;) for documentation</code></pre>
+<pre><code>## downloading 1 resources</code></pre>
+<pre><code>## retrieving 1 resource</code></pre>
+<pre><code>## loading from cache</code></pre>
+<pre><code>##                                                      EH1958 
+## &quot;/home/biocbuild/.cache/R/ExperimentHub/2f3a88c236b49_1958&quot;</code></pre>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">file.rename</span>(<span class="kw">cache</span>(temp[<span class="st">&quot;EH1958&quot;</span>]), <span class="kw">file.path</span>(<span class="kw">hubCache</span>(temp), <span class="st">&#39;ORB35022.mzXML&#39;</span>))</span></code></pre></div>
+<pre><code>## [1] TRUE</code></pre>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">rtDevModelling</span>(</span>
+<span id="cb16-2"><a href="#cb16-2"></a>  <span class="dt">MS2Dir =</span> <span class="kw">hubCache</span>(temp),</span>
+<span id="cb16-3"><a href="#cb16-3"></a>  <span class="dt">nCores=</span><span class="dv">4</span>,</span>
+<span id="cb16-4"><a href="#cb16-4"></a>  <span class="dt">runOrder =</span><span class="kw">paste0</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, </span>
+<span id="cb16-5"><a href="#cb16-5"></a>                               <span class="dt">package =</span><span class="st">&quot;adductomicsR&quot;</span>),<span class="st">&#39;/runOrder.csv&#39;</span>)</span>
+<span id="cb16-6"><a href="#cb16-6"></a>  )</span></code></pre></div>
+</div>
+<div id="identify-adducts" class="section level1">
+<h1>Identify adducts</h1>
+<p>The specSimPepId function detects adducts present on the peptide. To run this with the default parameters (the largest triply charged peptide of human serum albumin) enter the path of your mzxml files and rtDevModels object. For further information on running this with different peptides see ??specSimPepId. This produces MS2 spectra plots, each in a separate directory for each sample. A plot of the model spectrum is also saved in the mzXML files directory for comparison. The spectra are grouped based on the mz and RT windows, and plots of these groups are also provided based on the raw RT and adjusted RT. These plots can be used to determine whether multiple groups pertain to the same peak.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="kw">specSimPepId</span>(</span>
+<span id="cb17-2"><a href="#cb17-2"></a>  <span class="dt">MS2Dir =</span> <span class="kw">hubCache</span>(temp),</span>
+<span id="cb17-3"><a href="#cb17-3"></a>  <span class="dt">nCores=</span><span class="dv">4</span>, </span>
+<span id="cb17-4"><a href="#cb17-4"></a>  <span class="dt">rtDevModels =</span><span class="kw">paste0</span>(<span class="kw">hubCache</span>(temp),<span class="st">&#39;/rtDevModels.RData&#39;</span>)</span>
+<span id="cb17-5"><a href="#cb17-5"></a>  )</span></code></pre></div>
+</div>
+<div id="generate-a-target-table-for-quantification" class="section level1">
+<h1>Generate a target table for quantification</h1>
+<p>A list of the adducts for quantification and their monoisotopic mass (MIM), retention time (RT), peptide and charge is generated using the following command. Substitute the file path of the allResults file to the location of your allResults file from the previous step.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">generateTargTable</span>(</span>
+<span id="cb18-2"><a href="#cb18-2"></a>  <span class="dt">allresultsFile=</span><span class="kw">paste0</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>,<span class="dt">package =</span></span>
+<span id="cb18-3"><a href="#cb18-3"></a>  <span class="st">&quot;adductomicsR&quot;</span>),<span class="st">&#39;/allResults_ALVLIAFAQYLQQCPFEDHVK_example.csv&#39;</span>),</span>
+<span id="cb18-4"><a href="#cb18-4"></a>  <span class="dt">csvDir=</span><span class="kw">tempdir</span>(<span class="dt">check =</span> <span class="ot">FALSE</span>)</span>
+<span id="cb18-5"><a href="#cb18-5"></a>  )</span></code></pre></div>
+<p>It is recommended that the allGroups plot ( m/z vs RT) is used to ensure that the adducts in the target table do not pertain to the same peak, as the quantification step can be computationally intensive.</p>
+</div>
+<div id="quantify-adducts" class="section level1">
+<h1>Quantify adducts</h1>
+<p>See ??adductQuant for an explanation on the parameters for this function. To use your target table produced in the previous step, alter the value in the ‘targTable’ option to the path of your target table. Similarly replaced the path to the directory of your own mzXML files in filePaths (set as “Users/Documents/mzXMLfiles” here.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a><span class="kw">adductQuant</span>(</span>
+<span id="cb19-2"><a href="#cb19-2"></a>  <span class="dt">nCores=</span><span class="dv">2</span>, </span>
+<span id="cb19-3"><a href="#cb19-3"></a>  <span class="dt">targTable=</span><span class="kw">paste0</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, </span>
+<span id="cb19-4"><a href="#cb19-4"></a>                               <span class="dt">package=</span><span class="st">&quot;adductomicsR&quot;</span>),</span>
+<span id="cb19-5"><a href="#cb19-5"></a>                               <span class="st">&#39;/exampletargTable2.csv&#39;</span>), </span>
+<span id="cb19-6"><a href="#cb19-6"></a>  <span class="dt">intStdRtDrift=</span><span class="dv">30</span>, </span>
+<span id="cb19-7"><a href="#cb19-7"></a>  <span class="dt">rtDevModels=</span> <span class="kw">paste0</span>(<span class="kw">hubCache</span>(temp),<span class="st">&#39;/rtDevModels.RData&#39;</span>),</span>
+<span id="cb19-8"><a href="#cb19-8"></a>  <span class="dt">filePaths=</span><span class="kw">list.files</span>(<span class="kw">hubCache</span>(temp),<span class="dt">pattern=</span><span class="st">&quot;.mzXML&quot;</span>,</span>
+<span id="cb19-9"><a href="#cb19-9"></a>                       <span class="dt">all.files=</span><span class="ot">FALSE</span>,<span class="dt">full.names=</span><span class="ot">TRUE</span>),</span>
+<span id="cb19-10"><a href="#cb19-10"></a>  <span class="dt">quantObject=</span><span class="ot">NULL</span>,</span>
+<span id="cb19-11"><a href="#cb19-11"></a>  <span class="dt">indivAdduct=</span><span class="ot">NULL</span>,</span>
+<span id="cb19-12"><a href="#cb19-12"></a>  <span class="dt">maxPpm=</span><span class="dv">5</span>,</span>
+<span id="cb19-13"><a href="#cb19-13"></a>  <span class="dt">minSimScore=</span><span class="fl">0.8</span>,</span>
+<span id="cb19-14"><a href="#cb19-14"></a>  <span class="dt">spikeScans=</span><span class="dv">1</span>,</span>
+<span id="cb19-15"><a href="#cb19-15"></a>  <span class="dt">minPeakHeight=</span><span class="dv">100</span>,</span>
+<span id="cb19-16"><a href="#cb19-16"></a>  <span class="dt">maxRtDrift=</span><span class="dv">20</span>,</span>
+<span id="cb19-17"><a href="#cb19-17"></a>  <span class="dt">maxRtWindow=</span><span class="dv">240</span>,</span>
+<span id="cb19-18"><a href="#cb19-18"></a>  <span class="dt">isoWindow=</span><span class="dv">80</span>,</span>
+<span id="cb19-19"><a href="#cb19-19"></a>  <span class="dt">hkPeptide=</span><span class="st">&#39;LVNEVTEFAK&#39;</span>, </span>
+<span id="cb19-20"><a href="#cb19-20"></a>  <span class="dt">gaussAlpha=</span><span class="dv">16</span></span>
+<span id="cb19-21"><a href="#cb19-21"></a>  )</span></code></pre></div>
+</div>
+<div id="extract-the-results-from-the-adductquantif-object" class="section level1">
+<h1>Extract the results from the AdductQuantif Object</h1>
+<p>It is recommended that spectra for each of the adducts found are checked manually using LC-MS software, either at this step or before quantification.</p>
+<p>To load your adductquantif object set the path to the file on your system. In the example it assumes the file is present in your working directory.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="co">#load the adductquantif object </span></span>
+<span id="cb20-2"><a href="#cb20-2"></a><span class="kw">load</span>(<span class="kw">paste0</span>(<span class="kw">hubCache</span>(temp),<span class="st">&quot;/adductQuantResults.Rda&quot;</span>))</span>
+<span id="cb20-3"><a href="#cb20-3"></a></span>
+<span id="cb20-4"><a href="#cb20-4"></a><span class="co">#produce a peakTable from the Adductquantif object and save to a temporary</span></span>
+<span id="cb20-5"><a href="#cb20-5"></a><span class="co">#directory</span></span>
+<span id="cb20-6"><a href="#cb20-6"></a><span class="kw">suppressMessages</span>(<span class="kw">suppressWarnings</span>(<span class="kw">outputPeakTable</span>(<span class="dt">object=</span></span>
+<span id="cb20-7"><a href="#cb20-7"></a>    object, <span class="dt">outputDir=</span><span class="kw">tempdir</span>(<span class="dt">check =</span> <span class="ot">FALSE</span>))))</span></code></pre></div>
+</div>
+<div id="filter-the-results-from-the-peak-area-table" class="section level1">
+<h1>Filter the results from the peak area table</h1>
+<p>Mass spectrometry data is inherently noisy, and the filterAdductTable() function will filter out samples and adducts based on set thresholds. It is recommended to use this filter function to remove adducts that have many missing values and samples where the housekeeping peptide is weak, suggestive of misintegration. Substitute the name of the peaklist file with the path and the name of your peaklist file produced in the previous step.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a><span class="kw">filterAdductTable</span>(</span>
+<span id="cb21-2"><a href="#cb21-2"></a>  <span class="kw">paste0</span>(<span class="kw">tempdir</span>(<span class="dt">check =</span> <span class="ot">FALSE</span>),<span class="st">&quot;/adductQuantif_peakList_&quot;</span>, <span class="kw">Sys.Date</span>(), <span class="st">&quot;.csv&quot;</span>)</span>
+<span id="cb21-3"><a href="#cb21-3"></a>  )</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a><span class="co">#session info</span></span>
+<span id="cb22-2"><a href="#cb22-2"></a><span class="kw">sessionInfo</span>()</span></code></pre></div>
+<pre><code>## R version 4.5.0 RC (2025-04-04 r88126)
+## Platform: x86_64-pc-linux-gnu
+## Running under: Ubuntu 24.04.2 LTS
+## 
+## Matrix products: default
+## BLAS:   /home/biocbuild/bbs-3.21-bioc/R/lib/libRblas.so 
+## LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0  LAPACK version 3.12.0
+## 
+## locale:
+##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+##  [3] LC_TIME=en_GB              LC_COLLATE=C              
+##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+## 
+## time zone: America/New_York
+## tzcode source: system (glibc)
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+## [1] adductomicsR_1.24.0  ExperimentHub_2.16.0 AnnotationHub_3.16.0
+## [4] BiocFileCache_2.16.0 dbplyr_2.5.0         BiocGenerics_0.54.0 
+## [7] generics_0.1.3       adductData_1.23.0   
+## 
+## loaded via a namespace (and not attached):
+##  [1] ade4_1.7-23             tidyselect_1.2.1        dplyr_1.1.4            
+##  [4] blob_1.2.4              filelock_1.0.3          Biostrings_2.76.0      
+##  [7] fastmap_1.2.0           promises_1.3.2          digest_0.6.37          
+## [10] mime_0.13               lifecycle_1.0.4         cluster_2.1.8.1        
+## [13] processx_3.8.6          KEGGREST_1.48.0         RSQLite_2.3.9          
+## [16] magrittr_2.0.3          kernlab_0.9-33          compiler_4.5.0         
+## [19] rlang_1.1.6             sass_0.4.10             tools_4.5.0            
+## [22] yaml_2.3.10             knitr_1.50              htmlwidgets_1.6.4      
+## [25] bit_4.6.0               mclust_6.1.1            curl_6.2.2             
+## [28] xml2_1.3.8              plyr_1.8.9              websocket_1.4.4        
+## [31] withr_3.0.2             purrr_1.0.4             nnet_7.3-20            
+## [34] grid_4.5.0              stats4_4.5.0            iterators_1.0.14       
+## [37] fpc_2.2-13              MASS_7.3-65             prabclus_2.3-4         
+## [40] pastecs_1.4.2           cli_3.6.4               rmarkdown_2.29         
+## [43] crayon_1.5.3            robustbase_0.99-4-1     httr_1.4.7             
+## [46] reshape2_1.4.4          chromote_0.5.0          DBI_1.2.3              
+## [49] cachem_1.1.0            stringr_1.5.1           modeltools_0.2-23      
+## [52] rvest_1.0.4             parallel_4.5.0          AnnotationDbi_1.70.0   
+## [55] BiocManager_1.30.25     XVector_0.48.0          vctrs_0.6.5            
+## [58] boot_1.3-31             jsonlite_2.0.0          IRanges_2.42.0         
+## [61] S4Vectors_0.46.0        bit64_4.6.0-1           foreach_1.5.2          
+## [64] diptest_0.77-1          jquerylib_0.1.4         glue_1.8.0             
+## [67] DEoptimR_1.1-3-1        ps_1.9.1                codetools_0.2-20       
+## [70] DT_0.33                 stringi_1.8.7           later_1.4.2            
+## [73] BiocVersion_3.21.1      GenomeInfoDb_1.44.0     UCSC.utils_1.4.0       
+## [76] tibble_3.2.1            pillar_1.10.2           rappdirs_0.3.3         
+## [79] htmltools_0.5.8.1       GenomeInfoDbData_1.2.14 R6_2.6.1               
+## [82] evaluate_1.0.3          Biobase_2.68.0          lattice_0.22-7         
+## [85] png_0.1-8               memoise_2.0.1           bslib_0.9.0            
+## [88] class_7.3-23            Rcpp_1.0.14             flexmix_2.3-20         
+## [91] xfun_0.52               pkgconfig_2.0.3</code></pre>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

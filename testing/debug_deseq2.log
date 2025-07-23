@@ -1,0 +1,212 @@
+Vignette-based EDAM Ontology Matcher
+============================================================
+Packages to process: ['DESeq2']
+Output file: debug_deseq2_results.json
+EDAM CSV: EDAM.csv
+[DEBUG] Using OpenAI API key: sk-p...n68A
+✅ EDAM Validator initialized with 3473 valid IDs and 3396 valid labels, 2650 synonyms indexed
+✅ Enhanced EDAM System initialized with 2359 active terms
+📦 Batch size set to 5000 packages per batch
+Initialized VignetteEDAMMatcher with 3473 EDAM terms
+[PROGRESS] Starting vignette processing for 1 package(s)
+[PROGRESS] Using temporary directory: /var/folders/gg/brrd090n1l9ccy18v66ynvp80000gr/T/tmpmsidudmf/vignette_downloads
+
+============================================================
+[PROGRESS] Processing package: DESeq2
+============================================================
+
+[PROGRESS] Downloading vignettes for package: DESeq2
+[PROGRESS] Attempting to download: https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html
+Downloaded: downloads//var/folders/gg/brrd090n1l9ccy18v66ynvp80000gr/T/tmpmsidudmf/vignette_downloads/DESeq2/DESeq2.html
+[PROGRESS] ✅ Downloaded: downloads//var/folders/gg/brrd090n1l9ccy18v66ynvp80000gr/T/tmpmsidudmf/vignette_downloads/DESeq2/DESeq2.html
+[PROGRESS] Processing file: downloads//var/folders/gg/brrd090n1l9ccy18v66ynvp80000gr/T/tmpmsidudmf/vignette_downloads/DESeq2/DESeq2.html
+[PROGRESS] Converting HTML to markdown: downloads//var/folders/gg/brrd090n1l9ccy18v66ynvp80000gr/T/tmpmsidudmf/vignette_downloads/DESeq2/DESeq2.html
+Converted to markdown: downloads//var/folders/gg/brrd090n1l9ccy18v66ynvp80000gr/T/tmpmsidudmf/vignette_downloads/DESeq2/DESeq2.md
+[PROGRESS] Processing markdown with PyMu4LLM: downloads//var/folders/gg/brrd090n1l9ccy18v66ynvp80000gr/T/tmpmsidudmf/vignette_downloads/DESeq2/DESeq2.md
+Processed markdown: downloads//var/folders/gg/brrd090n1l9ccy18v66ynvp80000gr/T/tmpmsidudmf/vignette_downloads/DESeq2/DESeq2_extracted.txt
+[PROGRESS] ✅ Processed HTML->MD->TXT: downloads//var/folders/gg/brrd090n1l9ccy18v66ynvp80000gr/T/tmpmsidudmf/vignette_downloads/DESeq2/DESeq2_extracted.txt
+[PROGRESS] Extracting text from: downloads//var/folders/gg/brrd090n1l9ccy18v66ynvp80000gr/T/tmpmsidudmf/vignette_downloads/DESeq2/DESeq2_extracted.txt
+[PROGRESS] ✅ Extracted 181598 characters from downloads//var/folders/gg/brrd090n1l9ccy18v66ynvp80000gr/T/tmpmsidudmf/vignette_downloads/DESeq2/DESeq2_extracted.txt (images removed)
+[PROGRESS] ⚠️  Content too long (181598 chars), truncating to 50,000
+[PROGRESS] ✅ Ready for EDAM matching: DESeq2 (10024 chars)
+
+============================================================
+[PROGRESS] Running Enhanced EDAM Matching
+============================================================
+📦 Processing 1 packages in 1 batches of 5000
+
+🔄 Processing batch 1/1 (packages 1-1)
+  [1/1] DESeq2
+[RETRY] OpenAI RateLimitError or quota error on attempt 1/3: litellm.RateLimitError: RateLimitError: OpenAIException - You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.
+Traceback (most recent call last):
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/llms/openai/openai.py", line 725, in completion
+    raise e
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/llms/openai/openai.py", line 653, in completion
+    ) = self.make_sync_openai_chat_completion_request(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/litellm_core_utils/logging_utils.py", line 149, in sync_wrapper
+    result = func(*args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/llms/openai/openai.py", line 471, in make_sync_openai_chat_completion_request
+    raise e
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/llms/openai/openai.py", line 453, in make_sync_openai_chat_completion_request
+    raw_response = openai_client.chat.completions.with_raw_response.create(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/openai/_legacy_response.py", line 364, in wrapped
+    return cast(LegacyAPIResponse[R], func(*args, **kwargs))
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/openai/_utils/_utils.py", line 287, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/openai/resources/chat/completions/completions.py", line 1087, in create
+    return self._post(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/openai/_base_client.py", line 1256, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/openai/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/main.py", line 1969, in completion
+    raise e
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/main.py", line 1942, in completion
+    response = openai_chat_completions.completion(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/llms/openai/openai.py", line 736, in completion
+    raise OpenAIError(
+litellm.llms.openai.common_utils.OpenAIError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/utils.py", line 1184, in wrapper
+    result = original_function(*args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/main.py", line 3430, in completion
+    raise exception_type(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2301, in exception_type
+    raise e
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 329, in exception_type
+    raise RateLimitError(
+litellm.exceptions.RateLimitError: litellm.RateLimitError: RateLimitError: OpenAIException - You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/adapters/chat_adapter.py", line 42, in __call__
+    return super().__call__(lm, lm_kwargs, signature, demos, inputs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/adapters/base.py", line 119, in __call__
+    outputs = lm(messages=inputs, **lm_kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/utils/callback.py", line 326, in sync_wrapper
+    return fn(instance, *args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/clients/base_lm.py", line 96, in __call__
+    response = self.forward(prompt=prompt, messages=messages, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/clients/lm.py", line 127, in forward
+    results = completion(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/clients/cache.py", line 232, in sync_wrapper
+    result = fn(*args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/clients/lm.py", line 304, in litellm_completion
+    return litellm.completion(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/utils.py", line 1289, in wrapper
+    return litellm.completion_with_retries(*args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/main.py", line 3468, in completion_with_retries
+    return retryer(original_function, *args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/tenacity/__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/tenacity/__init__.py", line 378, in iter
+    result = action(retry_state)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/tenacity/__init__.py", line 420, in exc_check
+    raise retry_exc.reraise()
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/tenacity/__init__.py", line 187, in reraise
+    raise self.last_attempt.result()
+  File "/Users/nikolas/miniconda3/lib/python3.10/concurrent/futures/_base.py", line 451, in result
+    return self.__get_result()
+  File "/Users/nikolas/miniconda3/lib/python3.10/concurrent/futures/_base.py", line 403, in __get_result
+    raise self._exception
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/tenacity/__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/utils.py", line 1309, in wrapper
+    raise e
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/utils.py", line 1184, in wrapper
+    result = original_function(*args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/main.py", line 3430, in completion
+    raise exception_type(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2301, in exception_type
+    raise e
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 329, in exception_type
+    raise RateLimitError(
+litellm.exceptions.RateLimitError: litellm.RateLimitError: RateLimitError: OpenAIException - You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/openai/_base_client.py", line 1024, in request
+    response.raise_for_status()
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/httpx/_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '429 Too Many Requests' for url 'https://api.openai.com/v1/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nikolas/Desktop/Projects/ISMB_ColabFest/vignette_edam_matcher.py", line 309, in <module>
+    sys.exit(main())
+  File "/Users/nikolas/Desktop/Projects/ISMB_ColabFest/vignette_edam_matcher.py", line 276, in main
+    results = matcher.process_packages(package_names, output_file=args.output)
+  File "/Users/nikolas/Desktop/Projects/ISMB_ColabFest/vignette_edam_matcher.py", line 203, in process_packages
+    batch_results = self.matcher.process_packages_in_batches(
+  File "/Users/nikolas/Desktop/Projects/ISMB_ColabFest/enhanced_edam_matcher.py", line 475, in process_packages_in_batches
+    match = self.match_package_to_ontology(
+  File "/Users/nikolas/Desktop/Projects/ISMB_ColabFest/enhanced_edam_matcher.py", line 299, in match_package_to_ontology
+    result = self.matcher(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/utils/callback.py", line 326, in sync_wrapper
+    return fn(instance, *args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/primitives/program.py", line 60, in __call__
+    return self.forward(*args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/predict/chain_of_thought.py", line 38, in forward
+    return self.predict(**kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/predict/predict.py", line 85, in __call__
+    return super().__call__(**kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/utils/callback.py", line 326, in sync_wrapper
+    return fn(instance, *args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/primitives/program.py", line 60, in __call__
+    return self.forward(*args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/predict/predict.py", line 157, in forward
+    completions = adapter(lm, lm_kwargs=config, signature=signature, demos=demos, inputs=kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/adapters/chat_adapter.py", line 51, in __call__
+    return JSONAdapter()(lm, lm_kwargs, signature, demos, inputs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/adapters/json_adapter.py", line 53, in __call__
+    return super().__call__(lm, lm_kwargs, signature, demos, inputs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/adapters/chat_adapter.py", line 42, in __call__
+    return super().__call__(lm, lm_kwargs, signature, demos, inputs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/adapters/base.py", line 119, in __call__
+    outputs = lm(messages=inputs, **lm_kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/utils/callback.py", line 326, in sync_wrapper
+    return fn(instance, *args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/clients/base_lm.py", line 96, in __call__
+    response = self.forward(prompt=prompt, messages=messages, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/clients/lm.py", line 127, in forward
+    results = completion(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/clients/cache.py", line 232, in sync_wrapper
+    result = fn(*args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/dspy/clients/lm.py", line 304, in litellm_completion
+    return litellm.completion(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/utils.py", line 1184, in wrapper
+    result = original_function(*args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/main.py", line 1942, in completion
+    response = openai_chat_completions.completion(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/llms/openai/openai.py", line 653, in completion
+    ) = self.make_sync_openai_chat_completion_request(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/litellm_core_utils/logging_utils.py", line 149, in sync_wrapper
+    result = func(*args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/litellm/llms/openai/openai.py", line 453, in make_sync_openai_chat_completion_request
+    raw_response = openai_client.chat.completions.with_raw_response.create(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/openai/_legacy_response.py", line 364, in wrapped
+    return cast(LegacyAPIResponse[R], func(*args, **kwargs))
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/openai/_utils/_utils.py", line 287, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/openai/resources/chat/completions/completions.py", line 1087, in create
+    return self._post(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/openai/_base_client.py", line 1256, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/openai/_base_client.py", line 1030, in request
+    self._sleep_for_retry(
+  File "/Users/nikolas/miniconda3/lib/python3.10/site-packages/openai/_base_client.py", line 1070, in _sleep_for_retry
+    time.sleep(timeout)
+KeyboardInterrupt
