@@ -43,10 +43,9 @@ class NewDesignationSuggestion(BaseModel):
 
 
 class EDAMValidator:
-    """Pure Python validator for EDAM terms."""
-    
-    def __init__(self, edam_csv_path: str):
-        """Initialize validator with EDAM CSV data, including synonyms."""
+    """Pure Python validator for EDAM terms, with optional synonym support."""
+    def __init__(self, edam_csv_path: str, use_synonyms: bool = True):
+        """Initialize validator with EDAM CSV data, optionally including synonyms."""
         self.edam_df = pd.read_csv(edam_csv_path)
 
         # Create lookup sets for fast validation
@@ -57,7 +56,7 @@ class EDAMValidator:
         self.id_to_label: Dict[str, str] = {}
         self.label_to_id: Dict[str, str] = {}
 
-        # Synonym support
+        self.use_synonyms = use_synonyms
         self.synonym_to_label: Dict[str, str] = {}
         self.synonym_to_id: Dict[str, str] = {}
 
@@ -67,29 +66,30 @@ class EDAMValidator:
                 label = row['Preferred Label']
                 self.id_to_label[class_id] = label
                 self.label_to_id[label] = class_id
+                if self.use_synonyms:
+                    # Index synonyms (pipe-separated)
+                    if 'Synonyms' in row and pd.notna(row['Synonyms']):
+                        for synonym in str(row['Synonyms']).split('|'):
+                            synonym = synonym.strip()
+                            if synonym:
+                                self.synonym_to_label[synonym] = label
+                                self.synonym_to_id[synonym] = class_id
 
-                # Index synonyms (pipe-separated)
-                if 'Synonyms' in row and pd.notna(row['Synonyms']):
-                    for synonym in str(row['Synonyms']).split('|'):
-                        synonym = synonym.strip()
-                        if synonym:
-                            self.synonym_to_label[synonym] = label
-                            self.synonym_to_id[synonym] = class_id
-
-        print(f"✅ EDAM Validator initialized with {len(self.valid_ids)} valid IDs and {len(self.valid_labels)} valid labels, {len(self.synonym_to_label)} synonyms indexed")
+        print(f"✅ EDAM Validator initialized with {len(self.valid_ids)} valid IDs and {len(self.valid_labels)} valid labels, {len(self.synonym_to_label) if self.use_synonyms else 0} synonyms indexed (use_synonyms={self.use_synonyms})")
     def get_label_for_synonym(self, synonym: str) -> str | None:
-        """Get preferred label for a synonym, or None if not found."""
+        if not self.use_synonyms:
+            return None
         return self.synonym_to_label.get(synonym)
 
     def get_id_for_synonym(self, synonym: str) -> str | None:
-        """Get class ID for a synonym, or None if not found."""
+        if not self.use_synonyms:
+            return None
         return self.synonym_to_id.get(synonym)
 
     def normalize_label_and_id(self, label_or_synonym: str) -> tuple[str | None, str | None]:
-        """Given a label or synonym, return (preferred_label, class_id) if found, else (None, None)."""
         if label_or_synonym in self.label_to_id:
             return label_or_synonym, self.label_to_id[label_or_synonym]
-        if label_or_synonym in self.synonym_to_label:
+        if self.use_synonyms and label_or_synonym in self.synonym_to_label:
             label = self.synonym_to_label[label_or_synonym]
             class_id = self.synonym_to_id[label_or_synonym]
             return label, class_id
@@ -100,8 +100,10 @@ class EDAMValidator:
         return edam_id in self.valid_ids
     
     def validate_label(self, edam_label: str) -> bool:
-        """Check if EDAM label or synonym exists in CSV."""
-        return edam_label in self.valid_labels or edam_label in self.synonym_to_label
+        if self.use_synonyms:
+            return edam_label in self.valid_labels or edam_label in self.synonym_to_label
+        else:
+            return edam_label in self.valid_labels
     
     def validate_match(self, edam_id: str, edam_label: str) -> Tuple[bool, str]:
         """
@@ -122,8 +124,7 @@ class EDAMValidator:
         expected_label = self.id_to_label.get(edam_id)
         if expected_label == edam_label:
             return True, "Valid match"
-        # If label is a synonym, check if it maps to this ID
-        if edam_label in self.synonym_to_label:
+        if self.use_synonyms and edam_label in self.synonym_to_label:
             if self.synonym_to_id[edam_label] == edam_id:
                 return True, "Valid match (via synonym)"
             else:
@@ -201,7 +202,7 @@ class NewDesignationSuggester(dspy.Signature):
 class EnhancedEDAMMatchingSystem:
     """Enhanced EDAM matching system with validation, batch processing, and low confidence handling."""
     
-    def __init__(self, edam_csv_path: str, openai_api_key: str | None = None, batch_size: int = 5000):
+    def __init__(self, edam_csv_path: str, openai_api_key: str | None = None, batch_size: int = 5000, use_synonyms: bool = True):
         """
         Initialize the enhanced EDAM matching system.
         
@@ -223,7 +224,7 @@ class EnhancedEDAMMatchingSystem:
         dspy.configure(lm=lm)
         
         # Initialize validator
-        self.validator = EDAMValidator(edam_csv_path)
+        self.validator = EDAMValidator(edam_csv_path, use_synonyms=use_synonyms)
         
         # Load EDAM ontology data
         self.edam_df = pd.read_csv(edam_csv_path)
@@ -291,72 +292,111 @@ class EnhancedEDAMMatchingSystem:
         """
         import time
         max_retries = 3
-        # Generate candidate terms
-        candidates = self.search_relevant_terms(package_description, top_k=10)
-        candidate_text = "\n".join([f"{k}: {v}" for k, v in candidates.items()])
-        for attempt in range(max_retries):
-            try:
-                result = self.matcher(
-                    package_name=package_name,
-                    package_description=package_description,
-                    candidate_terms=candidate_text
-                )
-                # Normalize label and ID if a synonym was returned
-                norm_label, norm_id = self.validator.normalize_label_and_id(result.edam_label)
-                if norm_label and norm_id:
-                    result.edam_label = norm_label
-                    result.edam_id = norm_id
-                # Validate the result
-                is_valid, error_msg = self.validator.validate_match(result.edam_id, result.edam_label)
-                # If validation fails, try to fix the match
-                if not is_valid:
-                    print(f"⚠️  Validation failed for {package_name}: {error_msg}")
-                    corrected_id, corrected_label = self.validator.fix_match(result.edam_id, result.edam_label)
-                    # Check if fix worked
-                    is_valid_fixed, _ = self.validator.validate_match(corrected_id, corrected_label)
-                    if is_valid_fixed:
-                        print(f"✅ Fixed match: {corrected_id} -> {corrected_label}")
-                        result.edam_id = corrected_id
-                        result.edam_label = corrected_label
-                        is_valid = True
-                    else:
-                        print(f"❌ Could not fix match for {package_name}")
-                # Create the match object
-                match = OntologyMatch(
-                    edam_id=result.edam_id,
-                    edam_label=result.edam_label,
-                    confidence_score=float(result.confidence_score),
-                    reasoning=result.reasoning,
-                    validated=is_valid
-                )
-                # If confidence is below threshold, suggest a new designation
-                if match.confidence_score < confidence_threshold:
-                    print(f"🔍 Low confidence ({match.confidence_score:.3f}) for {package_name}, suggesting new designation...")
-                    suggestion = self.suggest_new_designation(package_name, package_description, match)
-                    # Add suggestion to reasoning
-                    match.reasoning += f" | NEW DESIGNATION SUGGESTED: {suggestion.suggested_label} ({suggestion.suggested_category})"
-                # Return as dict for downstream compatibility
-                return {
-                    'edam_id': match.edam_id,
-                    'edam_label': match.edam_label,
-                    'confidence_score': match.confidence_score,
-                    'reasoning': match.reasoning,
-                    'validated': match.validated
-                }
-            except Exception as e:
-                if 'RateLimitError' in str(e) or 'quota' in str(e):
-                    print(f"[RETRY] OpenAI RateLimitError or quota error on attempt {attempt+1}/{max_retries}: {e}")
-                    if attempt < max_retries - 1:
-                        time.sleep(10 * (attempt + 1))
-                        continue
-                print(f"❌ Error matching {package_name}: {e}")
-                break
-        # Return a fallback match if all retries fail
+        # Chunk ontology to avoid token/context overflow
+        # Token/char limits
+        MAX_TOKENS = 30000
+        SAFE_TOKENS = 25000  # Stay well below limit
+        CHARS_PER_TOKEN = 4  # Approximate
+        MAX_ONTOLOGY_CHARS = SAFE_TOKENS * CHARS_PER_TOKEN
+        vignette_chars = len(package_description)
+        # Prepare all ontology entries as strings
+        ontology_entries = [
+            f"{row['Class ID']}: {row['Preferred Label']}: {row['Definitions'] if pd.notna(row['Definitions']) else ''}"
+            for _, row in self.edam_df.iterrows()
+        ]
+        ontology_text = "\n".join(ontology_entries)
+        ontology_chars = len(ontology_text)
+        # Chunk ontology so each chunk + vignette is < MAX_ONTOLOGY_CHARS
+        chunk_char_budget = MAX_ONTOLOGY_CHARS - vignette_chars
+        chunk_entries = []
+        current_chunk = []
+        current_len = 0
+        for entry in ontology_entries:
+            entry_len = len(entry) + 1  # +1 for newline
+            if current_len + entry_len > chunk_char_budget and current_chunk:
+                chunk_entries.append(current_chunk)
+                current_chunk = []
+                current_len = 0
+            current_chunk.append(entry)
+            current_len += entry_len
+        if current_chunk:
+            chunk_entries.append(current_chunk)
+        num_chunks = len(chunk_entries)
+        print(f"[MATCHER REPORT] Vignette chars: {vignette_chars}")
+        print(f"[MATCHER REPORT] Ontology chars: {ontology_chars}")
+        print(f"[MATCHER REPORT] Ontology chunks: {num_chunks}")
+        print(f"[MATCHER REPORT] Ontology chars per chunk: {[sum(len(e)+1 for e in chunk) for chunk in chunk_entries]}")
+
+        best_match = None
+        best_confidence = -1
+        best_reasoning = ""
+        for chunk_idx, chunk in enumerate(chunk_entries):
+            candidate_text = "\n".join(chunk)
+            for attempt in range(max_retries):
+                try:
+                    result = self.matcher(
+                        package_name=package_name,
+                        package_description=package_description,
+                        candidate_terms=candidate_text
+                    )
+                    # Normalize label and ID if a synonym was returned
+                    norm_label, norm_id = self.validator.normalize_label_and_id(result.edam_label)
+                    if norm_label and norm_id:
+                        result.edam_label = norm_label
+                        result.edam_id = norm_id
+                    # Validate the result
+                    is_valid, error_msg = self.validator.validate_match(result.edam_id, result.edam_label)
+                    # If validation fails, try to fix the match
+                    if not is_valid:
+                        print(f"⚠️  Validation failed for {package_name}: {error_msg}")
+                        corrected_id, corrected_label = self.validator.fix_match(result.edam_id, result.edam_label)
+                        # Check if fix worked
+                        is_valid_fixed, _ = self.validator.validate_match(corrected_id, corrected_label)
+                        if is_valid_fixed:
+                            print(f"✅ Fixed match: {corrected_id} -> {corrected_label}")
+                            result.edam_id = corrected_id
+                            result.edam_label = corrected_label
+                            is_valid = True
+                        else:
+                            print(f"❌ Could not fix match for {package_name}")
+                    # Create the match object
+                    match = OntologyMatch(
+                        edam_id=result.edam_id,
+                        edam_label=result.edam_label,
+                        confidence_score=float(result.confidence_score),
+                        reasoning=result.reasoning,
+                        validated=is_valid
+                    )
+                    # Track best match across all chunks
+                    if match.confidence_score > best_confidence:
+                        best_match = match
+                        best_confidence = match.confidence_score
+                        best_reasoning = match.reasoning
+                    break  # Only use first successful attempt per chunk
+                except Exception as e:
+                    if 'RateLimitError' in str(e) or 'quota' in str(e):
+                        print(f"[RETRY] OpenAI RateLimitError or quota error on attempt {attempt+1}/{max_retries}: {e}")
+                        if attempt < max_retries - 1:
+                            time.sleep(10 * (attempt + 1))
+                            continue
+                    print(f"❌ Error matching {package_name} in chunk {chunk_idx+1}: {e}")
+                    break
+        # Only suggest a new term if no valid match found in any chunk
+        if best_match:
+            return {
+                'edam_id': best_match.edam_id,
+                'edam_label': best_match.edam_label,
+                'confidence_score': best_match.confidence_score,
+                'reasoning': best_match.reasoning,
+                'validated': best_match.validated
+            }
+        # Fallback if no match found
+        print(f"[MATCHER REPORT] No valid match found in any chunk. Suggesting new term.")
         return {
             'edam_id': "http://edamontology.org/topic_3365",
             'edam_label': "Data architecture, analysis and design",
             'confidence_score': 0.1,
-            'reasoning': f"Error during matching after {max_retries} attempts: RateLimit or quota error.",
+            'reasoning': f"Error during matching: No valid match found in any chunk.",
             'validated': False
         }
 

@@ -38,21 +38,21 @@ class VignetteEDAMMatcher:
     """Matches Bioconductor package vignettes to EDAM ontology using DSPy."""
     
     def __init__(self, edam_csv_path: str = "EDAM.csv", 
-                 openai_api_key: Optional[str] = None):
+                 openai_api_key: Optional[str] = None,
+                 use_synonyms: bool = False):
         """Initialize the vignette EDAM matcher."""
         self.edam_csv_path = edam_csv_path
         self.openai_api_key = openai_api_key or os.getenv('OPENAI_API_KEY')
-        
+        self.use_synonyms = use_synonyms
         if not self.openai_api_key:
             raise ValueError("OpenAI API key not found. Set OPENAI_API_KEY environment variable.")
-        
         # Initialize the enhanced EDAM matcher
         self.matcher = EnhancedEDAMMatchingSystem(
             edam_csv_path=edam_csv_path,
-            openai_api_key=self.openai_api_key
+            openai_api_key=self.openai_api_key,
+            use_synonyms=self.use_synonyms
         )
-        
-        print(f"Initialized VignetteEDAMMatcher with {len(self.matcher.validator.valid_ids)} EDAM terms")
+        print(f"Initialized VignetteEDAMMatcher with {len(self.matcher.validator.valid_ids)} EDAM terms (use_synonyms={self.use_synonyms})")
     
     def create_package_vignette_url(self, package_name: str) -> List[str]:
         """Create vignette URLs for a given package."""
@@ -289,9 +289,9 @@ def main():
         # Show individual results
         for pkg_result in results["packages"]:
             print(f"\n📦 {pkg_result['name']}:")
-            print(f"   Match: {pkg_result['edam_match']['label']}")
-            print(f"   ID: {pkg_result['edam_match']['id']}")
-            print(f"   Confidence: {pkg_result['confidence']:.3f}")
+            print(f"   Match: {pkg_result['edam_match']['edam_label']}")
+            print(f"   ID: {pkg_result['edam_match']['edam_id']}")
+            print(f"   Confidence: {pkg_result['edam_match']['confidence_score']:.3f}")
             
             if "new_designation" in pkg_result:
                 print(f"   💡 Suggestion: {pkg_result['new_designation']}")
