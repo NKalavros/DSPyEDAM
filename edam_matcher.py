@@ -357,9 +357,7 @@ class EnhancedEDAMMatchingSystem:
         print(f"[MATCHER REPORT] Ontology chunks: {num_chunks}")
         print(f"[MATCHER REPORT] Ontology per chunk: {[{'chars': sum(len(e)+1 for e in chunk), 'words': w, 'tokens': t} for chunk, w, t in zip(chunk_entries, chunk_words, chunk_tokens)]}")
 
-        best_match = None
-        best_confidence = -1
-        best_reasoning = ""
+        matches_above_threshold = []
         for chunk_idx, chunk in enumerate(chunk_entries):
             candidate_text = "\n".join(chunk)
             for attempt in range(max_retries):
@@ -397,11 +395,8 @@ class EnhancedEDAMMatchingSystem:
                         reasoning=result.reasoning,
                         validated=is_valid
                     )
-                    # Track best match across all chunks
-                    if match.confidence_score > best_confidence:
-                        best_match = match
-                        best_confidence = match.confidence_score
-                        best_reasoning = match.reasoning
+                    if match.confidence_score >= confidence_threshold:
+                        matches_above_threshold.append(match.dict())
                     break  # Only use first successful attempt per chunk
                 except Exception as e:
                     if 'RateLimitError' in str(e) or 'quota' in str(e):
@@ -411,23 +406,21 @@ class EnhancedEDAMMatchingSystem:
                             continue
                     print(f"❌ Error matching {package_name} in chunk {chunk_idx+1}: {e}")
                     break
-        # Only suggest a new term if no valid match found in any chunk
-        if best_match:
+        if matches_above_threshold:
             return {
-                'edam_id': best_match.edam_id,
-                'edam_label': best_match.edam_label,
-                'confidence_score': best_match.confidence_score,
-                'reasoning': best_match.reasoning,
-                'validated': best_match.validated
+                'matches_above_threshold': matches_above_threshold
             }
         # Fallback if no match found
         print(f"[MATCHER REPORT] No valid match found in any chunk. Suggesting new term.")
         return {
-            'edam_id': "http://edamontology.org/topic_3365",
-            'edam_label': "Data architecture, analysis and design",
-            'confidence_score': 0.1,
-            'reasoning': f"Error during matching: No valid match found in any chunk.",
-            'validated': False
+            'matches_above_threshold': [],
+            'fallback': {
+                'edam_id': "http://edamontology.org/topic_3365",
+                'edam_label': "Data architecture, analysis and design",
+                'confidence_score': 0.1,
+                'reasoning': f"Error during matching: No valid match found in any chunk.",
+                'validated': False
+            }
         }
 
 
@@ -518,7 +511,7 @@ class EnhancedEDAMMatchingSystem:
             confidence_threshold: Threshold for suggesting new designations
             
         Returns:
-            List of packages with their EDAM matches
+            List of packages with all matches above threshold
         """
 
         if simple_mode is None:
@@ -549,18 +542,21 @@ class EnhancedEDAMMatchingSystem:
                 print(f"  [{i + 1}/{len(batch)}] {package['name']}")
                 
                 # Match to EDAM ontology
-                match = self.match_package_to_ontology(
+                match_result = self.match_package_to_ontology(
                     package['name'], 
                     package['description'],
                     confidence_threshold,
                     simple_mode=simple_mode
                 )
-                
-                # Add the match to the package data
                 package_result = package.copy()
-                package_result['edam_match'] = match
+                package_result['matches_above_threshold'] = match_result.get('matches_above_threshold', [])
+                if 'fallback' in match_result:
+                    package_result['fallback'] = match_result['fallback']
                 batch_results.append(package_result)
-                print(f"    -> {match['edam_label']} (confidence: {match['confidence_score']:.3f}, validated: {match['validated']})")
+                if package_result['matches_above_threshold']:
+                    print(f"    -> {len(package_result['matches_above_threshold'])} matches above threshold")
+                elif 'fallback' in package_result:
+                    print(f"    -> Fallback: {package_result['fallback']['edam_label']} (confidence: {package_result['fallback']['confidence_score']:.3f})")
             
             all_results.extend(batch_results)
             

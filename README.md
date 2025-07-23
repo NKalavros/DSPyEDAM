@@ -51,15 +51,23 @@ Additional features:
 
 ## Testing
 
-### Test with Four Specific Packages
+### Test with Five Specific Packages
 
 ```bash
 # Test the system with 4 real Bioconductor packages
-python test_four_packages_real_dspy.py
+python vignette_edam_matcher.py --packages DESeq2,limma,AnnotationDbi,GEOquery --output testing/normal.json --edam-csv EDAM.csv --iterative_mode --simple_mode --threshold 0.95
 ```
 
-This tests:
-- **DESeq2**: Differential expression analysis
-- **miloR**: Single-cell differential abundance testing  
-- **Rsubread**: Sequencing read processing pipeline
-- **GEOquery**: Data retrieval from NCBI GEO
+#### Parameters explanation
+
+```
+--packages Comma separated list of packages, you can also get it from parse_biocviewspy
+```
+
+```
+--output testing/normal.json Output file
+```
+
+```
+edam-csv
+```
