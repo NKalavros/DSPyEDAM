@@ -85,3 +85,30 @@ edam-csv - The CSV file of the KB
 ```
 
 It will also always try to suggest a new matching. You can filter later if you don't want that.
+
+
+#### Using the MCP version
+
+On one terminal, run:
+
+```
+python edam_mcp.py
+```
+
+#### Calling the MCP server
+
+```
+import asyncio
+from mcp import ClientSession
+from mcp.client.streamable_http import streamablehttp_client
+
+async def main():
+    async with streamablehttp_client("http://localhost:8000/mcp") as (read, write, _):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            result = await session.call_tool("edam_match", {"name": "DESeq2"})
+            print(result.structuredContent or result.content)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```

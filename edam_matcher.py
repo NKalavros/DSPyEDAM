@@ -329,29 +329,39 @@ class EnhancedEDAMMatchingSystem:
         ontology_words = len(ontology_text.split())
         ontology_tokens = ontology_chars // 4
         # Chunk ontology so each chunk + vignette is < MAX_ONTOLOGY_CHARS
-        chunk_char_budget = MAX_ONTOLOGY_CHARS - vignette_chars
-        chunk_entries = []
-        current_chunk = []
-        current_len = 0
-        chunk_words = []
-        chunk_tokens = []
-        for entry in ontology_entries:
-            entry_len = len(entry) + 1  # +1 for newline
-            if current_len + entry_len > chunk_char_budget and current_chunk:
+        def chunk_ontology(entries, char_budget):
+            chunk_entries = []
+            current_chunk = []
+            current_len = 0
+            chunk_words = []
+            chunk_tokens = []
+            for entry in entries:
+                entry_len = len(entry) + 1  # +1 for newline
+                if current_len + entry_len > char_budget and current_chunk:
+                    chunk_entries.append(current_chunk)
+                    chunk_text = " ".join(current_chunk)
+                    chunk_words.append(len(chunk_text.split()))
+                    chunk_tokens.append(len(chunk_text) // 4)
+                    current_chunk = []
+                    current_len = 0
+                current_chunk.append(entry)
+                current_len += entry_len
+            if current_chunk:
                 chunk_entries.append(current_chunk)
                 chunk_text = " ".join(current_chunk)
                 chunk_words.append(len(chunk_text.split()))
                 chunk_tokens.append(len(chunk_text) // 4)
-                current_chunk = []
-                current_len = 0
-            current_chunk.append(entry)
-            current_len += entry_len
-        if current_chunk:
-            chunk_entries.append(current_chunk)
-            chunk_text = " ".join(current_chunk)
-            chunk_words.append(len(chunk_text.split()))
-            chunk_tokens.append(len(chunk_text) // 4)
+            return chunk_entries, chunk_words, chunk_tokens
+
+        chunk_char_budget = MAX_ONTOLOGY_CHARS - vignette_chars
+        chunk_entries, chunk_words, chunk_tokens = chunk_ontology(ontology_entries, chunk_char_budget)
         num_chunks = len(chunk_entries)
+
+        # If any chunk is still too large, halve the chunk_char_budget and re-chunk until all chunks fit
+        while any(sum(len(e)+1 for e in chunk) > chunk_char_budget for chunk in chunk_entries):
+            chunk_char_budget = chunk_char_budget // 2
+            chunk_entries, chunk_words, chunk_tokens = chunk_ontology(ontology_entries, chunk_char_budget)
+            num_chunks = len(chunk_entries)
 
         # Print matcher report after all chunking and adjustments
         print(f"[MATCHER REPORT] Vignette: {vignette_chars} chars, {vignette_words} words, ~{vignette_tokens} tokens")
