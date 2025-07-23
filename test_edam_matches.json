@@ -1,0 +1,50 @@
+[
+  {
+    "name": "DESeq2",
+    "description": "Differential gene expression analysis based on the negative binomial distribution. DESeq2 provides methods for testing differential expression by use of negative binomial generalized linear models; the estimates of dispersion and logarithmic fold changes incorporate data-driven prior distributions.",
+    "url": "https://bioconductor.org/packages/DESeq2",
+    "edam_match": {
+      "edam_id": "http://edamontology.org/operation_3223",
+      "edam_label": "Differential gene expression profiling",
+      "confidence_score": 0.95,
+      "reasoning": "Matches expected operation category. Contains relevant concepts: differential, expression, gene.",
+      "category": "Operation"
+    }
+  },
+  {
+    "name": "miloR",
+    "description": "Milo performs single-cell differential abundance testing. Cell states are modelled as overlapping neighbourhoods on a KNN graph. Hypothesis testing is performed using a negative binomial generalized linear model.",
+    "url": "https://bioconductor.org/packages/miloR",
+    "edam_match": {
+      "edam_id": "http://edamontology.org/operation_3223",
+      "edam_label": "Differential gene expression profiling",
+      "confidence_score": 0.55,
+      "reasoning": "Matches expected operation category. Contains relevant concepts: differential.",
+      "category": "Operation"
+    }
+  },
+  {
+    "name": "Rsubread",
+    "description": "Tools for processing next-gen sequencing read data including read mapping (align reads to reference), read summarization (counting reads mapped to genomic features) and detection of mutations including SNPs and indels.",
+    "url": "https://bioconductor.org/packages/Rsubread",
+    "edam_match": {
+      "edam_id": "http://edamontology.org/operation_3230",
+      "edam_label": "Read depth analysis",
+      "confidence_score": 0.85,
+      "reasoning": "Matches expected operation category. Contains relevant concepts: mapping, sequencing, reads.",
+      "category": "Operation"
+    }
+  },
+  {
+    "name": "GEOquery",
+    "description": "The Gene Expression Omnibus (GEO) is a public repository of microarray data. Given the rich and varied nature of this resource, it is only natural to want to apply BioConductor tools to these data. GEOquery is the bridge between GEO and BioConductor.",
+    "url": "https://bioconductor.org/packages/GEOquery",
+    "edam_match": {
+      "edam_id": "http://edamontology.org/operation_3223",
+      "edam_label": "Differential gene expression profiling",
+      "confidence_score": 0.95,
+      "reasoning": "Matches expected operation category. Contains relevant concepts: microarray.",
+      "category": "Operation"
+    }
+  }
+]

@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Test vignette_edam_matcher.py with DESeq2",
+			"command": "python vignette_edam_matcher.py --packages DESeq2 --output test_deseq2_edam.json --edam-csv EDAM.csv",
+			"group": "test",
+			"problemMatcher": []
+		}
+	]
+}
