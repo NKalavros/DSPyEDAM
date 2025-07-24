@@ -1,0 +1,23 @@
+[project]
+name = "edamnotation"
+version = "0.1.0"
+description = "Bioconductor package annotation with EDAM ontology, DSPy, GPT-4o, and MCP."
+authors = [
+    { name = "NKalavros" }
+]
+requires-python = ">=3.8"
+readme = "README.md"
+
+[project.dependencies]
+mcp = "*"
+openai = "*"
+fastapi = "*"
+uvicorn = "*"
+aiohttp = "*"
+
+[tool.uv]
+# uv will use this file for dependency management
+
+[build-system]
+requires = ["uv>=0.1.36"]
+build-backend = "uv.buildapi"

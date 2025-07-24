@@ -1,0 +1,6 @@
+# Core dependencies for EDAMnotation MCP server and client
+mcp
+openai
+fastapi
+uvicorn
+aiohttp
