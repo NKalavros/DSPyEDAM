@@ -4,3 +4,5 @@ openai
 fastapi
 uvicorn
 aiohttp
+dspy
+pandas
